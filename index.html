@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: blueviolet;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        #player {
+            border-radius: 10px;
+            border: 2px dashed #fff;
+            padding: 10px;
+            margin: 30px 0px;
+        }
+
+        input[type='text'] {
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: none;
+            outline: none;
+            transition: 300ms all;
+        }
+
+        input[type='text']:focus {
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: none;
+            outline: none;
+            transform: scale(1.1);
+        }
+
+        input[type='submit'] {
+            background-color: transparent;
+            border: 2px dashed pink;
+            width: 50px;
+            height: 30px;
+            border-radius: 5px;
+            outline: none;
+            color: #fff;
+            cursor: pointer;
+            transition: 300ms all;
+            margin: 0px 10px;
+        }
+
+        input[type='submit']:hover {
+            background-color: pink;
+            border: 2px dashed pink;
+            width: 50px;
+            height: 30px;
+            border-radius: 5px;
+            outline: none;
+            color: blueviolet;
+            transform: scale(1.1);
+        }
+
+        .video-name {
+            font-size: 20px;
+            color: #fff;
+            text-transform: uppercase;
+            margin: 0 auto;
+
+        }
+
+        .video-time {
+            text-align: center;
+            display: block;
+            color: #fff;
+            padding: 10px;
+        }
+
+        .current-time,
+        .total-time {
+            border: 1px dotted #fff;
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+
+<!DOCTYPE html>
+<html>
+
+<body>
+
+    <!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
+    <p>
+        <span class="video-name">Video Name</span> <br>
+        <span class="video-time">
+            <span class="current-time">00:00</span> /
+            <span class="total-time">00:00</span>
+        </span>
+    </p>
+    <div id="player"></div>
+    <form action="index.html">
+        <input required type="text" id="videoLink" placeholder="video link">
+        <input type="submit" value="Getir">
+    </form>
+
+
+
+    <script>
+        let totalTime = document.querySelector('.total-time');
+        let currentTime = document.querySelector('.current-time');
+        let videoName = document.querySelector('.video-name');
+        let counter = 0;
+        let videoLink = 'https://www.youtube.com/watch?v=lWPWmIrIgOM';
+        const videoForm = document.querySelector('form');
+
+
+        function getVideoId(url) {
+            var videoId = "";
+            // YouTube video ID'si, URL'nin "v" parametresindeki değerdir
+            var regex = /[?&]v=([^&#]*)/;
+            var match = regex.exec(url);
+            if (match && match[1]) {
+                videoId = match[1];
+            }
+
+            return videoId;
+        }
+
+        // 2. This code loads the IFrame Player API code asynchronously.
+        var tag = document.createElement('script');
+
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        // 3. This function creates an <iframe> (and YouTube player)
+        //    after the API code downloads.
+        var player;
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '390',
+                width: '640',
+                videoId: getVideoId(videoLink),
+                playerVars: {
+                    'playsinline': 1
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+        videoForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const videoUrl = document.querySelector('#videoLink').value;
+            const videoId = getVideoId(videoUrl);
+            player.loadVideoById(videoId);
+            setTimeout(() => {
+                let index = secondsToTime(player.getDuration()).indexOf(".");
+                let result = secondsToTime(player.getDuration()).substring(0, index);
+                totalTime.innerHTML = (result);
+                videoName.innerHTML = player.getVideoData().title;
+            }, 1000);
+        });
+        // 4. The API will call this function when the video player is ready.
+        function onPlayerReady(event) {
+            videoName.innerHTML = player.getVideoData().title;
+            totalTime.innerHTML = secondsToTime(player.getDuration());
+        }
+
+        // 5. The API calls this function when the player's state changes.
+        //    The function indicates that when playing a video (state=1),
+        let intervalId;
+
+        function onPlayerStateChange(event) {
+            if (player.getPlayerState() == 1) {
+                intervalId = setInterval(() => {
+                    counter++;
+                    currentTime.innerHTML = secondsToTime(counter);
+                }, 1000);
+            } else if (player.getPlayerState() == 2) {
+                clearInterval(intervalId);
+
+            }
+        }
+        function stopVideo() {
+            player.stopVideo();
+        }
+
+        function secondsToTime(seconds) {
+            var hours = Math.floor(seconds / 3600);
+            seconds %= 3600;
+            var minutes = Math.floor(seconds / 60);
+            var remainingSeconds = seconds % 60;
+
+            var timeString = "";
+
+            if (hours > 0) {
+                timeString += hours + ":";
+            }
+            if (minutes < 10) {
+                timeString += "0";
+            }
+            timeString += minutes + ":";
+            if (remainingSeconds < 10) {
+                timeString += "0";
+            }
+            timeString += remainingSeconds;
+
+            return timeString;
+        }
+    </script>
+</body>
+
+</html>
